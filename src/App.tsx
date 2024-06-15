@@ -1,5 +1,5 @@
 import { useAtom } from "jotai"
-import { configAtom, tabsAtom } from "./utils/store"
+import { tabsAtom } from "./utils/store"
 import Providers from "./utils/providers"
 import { PLACEHOLDERS } from "./utils/constants"
 import { useState } from "react"
@@ -7,8 +7,6 @@ import { useHotkeys } from "react-hotkeys-hook"
 import ConfigMenu from "./components/configmenu"
 
 function App() {
-
-  const [config, setConfig] = useAtom(configAtom)
   const [tabs, setTabs] = useAtom(tabsAtom)
   const [showConfigMenu, setShowConfigMenu] = useState(false);
 

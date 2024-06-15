@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function ConfigMenu(props: {
     show: boolean
@@ -33,11 +33,11 @@ export default function ConfigMenu(props: {
         }
     ]
 
-    const [currentTabs, setCurrentTabs] = useState({ menu: menu, current: 0 });
-
-    const getCurrentMenu = (m: any = menu, tab: number = 0) => {
-        return m[tab];
-    }
+    //const [currentTabs, setCurrentTabs] = useState({ menu: menu, current: 0 });
+    //
+    //const getCurrentMenu = (m: any = menu, tab: number = 0) => {
+    //    return m[tab];
+    //}
 
     useEffect(() => {
         const listener = (e: MouseEvent) => {
