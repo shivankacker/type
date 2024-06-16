@@ -23,7 +23,7 @@ function App() {
     setTabs({ current: 0, tabs: tabs.tabs.filter((_, i) => i !== index) })
   }
 
-  useHotkeys("ctrl+shift+c", () => setShowConfigMenu(!showConfigMenu))
+  useHotkeys("ctrl+j", () => setShowConfigMenu(!showConfigMenu))
 
   const handleMouseMove = () => {
     const selection = window.getSelection();
@@ -37,6 +37,8 @@ function App() {
       document.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
+
+  const randomPlaceholder = PLACEHOLDERS[Math.floor(Math.random() * (PLACEHOLDERS.length))];
 
   return (
     <Providers>
@@ -70,7 +72,7 @@ function App() {
             <span className="font-black">
               type.
             </span>
-            <button id="config-button" onClick={() => setShowConfigMenu(!showConfigMenu)}>
+            <button title="ctrl+j" id="config-button" onClick={() => setShowConfigMenu(!showConfigMenu)}>
               <i className="fal fa-cog" />
             </button>
             <a href="https://github.com/skks1212/type" title="contribute" target="_blank">
@@ -80,7 +82,7 @@ function App() {
         </div>
         {tabs.tabs.length > 0 ? (
           <textarea
-            placeholder={PLACEHOLDERS[Math.floor(Math.random() * (PLACEHOLDERS.length))]}
+            placeholder={randomPlaceholder}
             className="bg-primary flex-1 w-full p-4 text-primaryText outline-0 resize-none rounded-2xl"
             id="editor"
             value={tabs.tabs[tabs.current]}

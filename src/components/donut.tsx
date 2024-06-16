@@ -14,23 +14,12 @@ const TaurusDonut: React.FC<TaurusDonutProps> = ({ filledPercentage, innerRadius
         <svg
             viewBox={`0 0 ${outerRadius * 2} ${outerRadius * 2}`}
             width="100%"
-            height="auto"
-            className=""
+            height="100%"
+            className="absolute inset-0 w-full h-full"
         >
             <circle
-                cx={(radius + strokeWidth) / 2}
-                cy={(radius + strokeWidth) / 2}
-                r={radius}
-                stroke="var(--type-primaryText)"
-                strokeWidth={strokeWidth}
-                fill="none"
-                strokeDasharray={circumference}
-                strokeDashoffset={0}
-                opacity={0}
-            />
-            <circle
-                cx={(outerRadius + strokeWidth) / 2}
-                cy={(outerRadius + strokeWidth) / 2}
+                cx={125}
+                cy={outerRadius}
                 r={radius}
                 stroke="var(--type-primaryText)"
                 strokeWidth={strokeWidth}

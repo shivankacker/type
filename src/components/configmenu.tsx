@@ -15,6 +15,7 @@ export default function ConfigMenu(props: {
     const [config, setConfig] = useAtom(configAtom)
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [selectedItem, setSelectedItem] = useState<number | null>(null);
+    const [mousePosition, setMousePosition] = useState<{ x: number, y: number } | null>(null);
     const setTheme = (theme: Theme | null) => {
         setConfig({ ...config, theme })
     }
@@ -22,11 +23,11 @@ export default function ConfigMenu(props: {
         setConfig({ ...config, font: { ...config.font, family: font } })
     }
     const setLineHeight = (lineHeight: number) => {
-        setConfig({ ...config, font: { ...config.font, lineHeight } })
+        setConfig({ ...config, font: { ...config.font, lineHeight: lineHeight / 10 } })
     }
 
     const setOpacity = (opacity: number) => {
-        setConfig({ ...config, font: { ...config.font, opacity } })
+        setConfig({ ...config, font: { ...config.font, opacity: opacity / 10 } })
     }
 
     const setTextSize = (size: number) => {
@@ -37,6 +38,7 @@ export default function ConfigMenu(props: {
         {
             name: "Theme",
             icon: "palette",
+            value: config.theme,
             onChange: setTheme,
             subMenu: [
                 {
@@ -60,6 +62,7 @@ export default function ConfigMenu(props: {
             name: "Font",
             icon: "font",
             onChange: setFont,
+            value: config.font.family,
             subMenu: [
                 {
                     name: "Monospace",
@@ -81,20 +84,23 @@ export default function ConfigMenu(props: {
         {
             name: "Line Height",
             icon: "ruler",
-            minLimit: 1,
-            maxLimit: 2.5,
+            value: config.font.lineHeight * 10,
+            minLimit: 10,
+            maxLimit: 25,
             onChange: setLineHeight
         },
         {
             name: "Opacity",
             icon: "ghost",
-            minLimit: 0.5,
-            maxLimit: 1,
+            value: config.font.opacity * 10,
+            minLimit: 5,
+            maxLimit: 10,
             onChange: setOpacity
         },
         {
             name: "Text Size",
             icon: "text-height",
+            value: config.font.size,
             minLimit: 10,
             maxLimit: 100,
             onChange: setTextSize
@@ -144,10 +150,8 @@ export default function ConfigMenu(props: {
             const item = menu[selectedItem];
             switch (item.name) {
                 case "Theme":
-                    setSelectedIndex(item.subMenu?.findIndex(s => s.value === config.theme) || 0);
-                    break;
                 case "Font":
-                    setSelectedIndex(item.subMenu?.findIndex(s => s.value === config.font.family) || 0)
+                    setSelectedIndex(item.subMenu?.findIndex(s => s.value === item.value) || 0)
                     break;
             }
         }
@@ -164,10 +168,19 @@ export default function ConfigMenu(props: {
 
     useEffect(() => {
         const listener = (e: MouseEvent) => {
-            const isShowing = wheel.current?.classList.contains("scale-100");
+            const wheel = document.getElementById("config-wheel");
+            const button = document.getElementById("config-button");
+            if (!wheel || !button) return;
+            const isShowing = wheel.classList.contains("scale-100");
             const parents = e.composedPath();
             const target = e.target as HTMLElement;
-            if (isShowing && target.id !== "config-button" && target !== wheel.current && !parents.includes(wheel.current as EventTarget)) {
+            if (
+                isShowing
+                && target !== button
+                && target !== wheel
+                && !parents.includes(wheel)
+                && !parents.includes(button)
+            ) {
                 onClose();
             }
         }
@@ -193,23 +206,7 @@ export default function ConfigMenu(props: {
             if (submenu) {
                 setSelectedIndex((selectedIndex - 1 + submenu.length) % submenu.length);
             } else {
-                let val = 0;
-                let min = menu[selectedItem].minLimit || 0;
-                switch (menu[selectedItem].name) {
-                    case "Line Height":
-                        val = config.font.lineHeight - 0.1;
-                        break;
-                    case "Opacity":
-                        val = config.font.opacity - 0.1;
-                        break;
-                    case "Text Size":
-                        val = config.font.size - 1;
-                        break;
-                }
-                if (val >= min) {
-                    const onChange = menu[selectedItem].onChange as any;
-                    onChange(val);
-                }
+                handleValDecrease();
             }
         }
     });
@@ -221,36 +218,37 @@ export default function ConfigMenu(props: {
             if (submenu) {
                 setSelectedIndex((selectedIndex + 1) % submenu.length)
             } else {
-                let val = 0;
-                let max = menu[selectedItem].maxLimit || 100;
-                switch (menu[selectedItem].name) {
-                    case "Line Height":
-                        val = config.font.lineHeight + 0.1;
-                        break;
-                    case "Opacity":
-                        val = config.font.opacity + 0.1;
-                        break;
-                    case "Text Size":
-                        val = config.font.size + 1;
-                        break;
-                }
-                if (val <= max) {
-                    const onChange = menu[selectedItem].onChange as any;
-                    onChange(val);
-                }
-
+                handleValIncrease();
             }
         }
     });
     useHotkeys("enter", () => {
         if (selectedItem !== null) {
-            if (menu[selectedItem].subMenu) {
-                setSelectedItem(null);
-            }
+            setSelectedItem(null);
         } else {
             setSelectedItem(selectedIndex);
         }
     });
+
+    const handleValDecrease = () => {
+        if (selectedItem === null) return;
+        const min = menu[selectedItem].minLimit || 0;
+        const val = menu[selectedItem].value as number || 0;
+        if (val > min) {
+            const onChange = menu[selectedItem].onChange as any;
+            onChange(val - 1);
+        }
+    }
+
+    const handleValIncrease = () => {
+        if (selectedItem === null) return;
+        const max = menu[selectedItem].maxLimit || 0;
+        const val = menu[selectedItem].value as number || 0;
+        if (val < max) {
+            const onChange = menu[selectedItem].onChange as any;
+            onChange(val + 1);
+        }
+    }
 
     const getPercentage = (value: number) => {
         const min = menu[selectedItem as number].minLimit || 0;
@@ -260,7 +258,7 @@ export default function ConfigMenu(props: {
     }
 
     return (
-        <div ref={wheel} className={`fixed ${!show ? "scale-0" : "scale-100"} left-[calc(50vw-200px)] top-[calc(50vh-200px)] border border-secondary backdrop-blur rounded-full w-[400px] aspect-square transition-all flex flex-col justify-around`}>
+        <div ref={wheel} id="config-wheel" className={`fixed ${!show ? "scale-0" : "scale-100"} left-[calc(50vw-200px)] top-[calc(50vh-200px)] border border-secondary backdrop-blur rounded-full w-[400px] aspect-square transition-all flex flex-col justify-around`}>
             {menu.map((item, index) => {
                 return (
                     <div
@@ -278,10 +276,7 @@ export default function ConfigMenu(props: {
                         >
                             <i className={`fa${selectedIndex === index || selectedItem === index ? "s" : "l"} fa-${item.icon}`} />
                             <div className={`text-xs mt-2`}>
-                                {selectedItem === index && index > 1 ? (
-                                    menu[selectedItem].name === "Line Height" ? config.font.lineHeight :
-                                        (menu[selectedItem].name === "Opacity" ? config.font.opacity : config.font.size)
-                                ) : item.name}
+                                {selectedItem === index && index > 1 ? menu[selectedItem].value : item.name}
                             </div>
                             <div className={`absolute inset-0 ${selectedItem === index ? "" : ` bg-primaryText ${(selectedIndex === index ? "opacity-10 group-hover:opacity-15" : "opacity-0 group-hover:opacity-10")}`} rounded-full transition-all`} />
                         </button>
@@ -309,20 +304,75 @@ export default function ConfigMenu(props: {
                 </div>
             ))}
             {selectedItem !== null && menu[selectedItem].maxLimit && (
-                <div className="rounded-full overflow-hidden absolute inset-0 opacity-20">
+                <div
+                    className="rounded-full overflow-hidden absolute inset-0 opacity-10"
+                    onMouseDown={(e) => {
+                        setMousePosition({ x: e.clientX, y: e.clientY })
+                    }}
+                    onMouseUp={() => {
+                        setMousePosition(null)
+                    }}
+                    onMouseMove={(e) => {
+                        const circle = e.target as HTMLElement;
+                        const { left, top, width, height } = circle.getBoundingClientRect();
+                        const centerX = left + width / 2;
+                        const centerY = top + height / 2;
+                        if (mousePosition) {
+                            const dx = e.clientX - centerX;
+                            const dy = e.clientY - centerY;
+                            let angle = Math.atan2(dy, dx) * (180 / Math.PI); // Should have taken that trigonometry class
+
+                            if (angle < 0) {
+                                angle += 360;
+                            }
+                            const newProgress = Math.min(Math.max((angle / 360) * 100, 0), 100);
+                            const min = menu[selectedItem as number].minLimit || 0;
+                            const max = menu[selectedItem as number].maxLimit || 100;
+                            const value = Math.floor(min + (max - min) * (newProgress / 100));
+                            const onChange = menu[selectedItem as number].onChange as any;
+                            onChange(value);
+                            setMousePosition({ x: e.clientX, y: e.clientY })
+                        }
+                    }}
+                >
                     <TaurusDonut
                         filledPercentage={getPercentage(
-                            menu[selectedItem].name === "Line Height" ? config.font.lineHeight :
-                                (menu[selectedItem].name === "Opacity" ? config.font.opacity : config.font.size)
+                            menu[selectedItem].value as number
                         )}
                         innerRadius={75}
                         outerRadius={200}
                     />
                 </div>
-            )}
+            )
+            }
             <div
-                className="absolute inset-[125px] w-[150px] rounded-full bg-primary opacity-50 border border-secondaryActive"
-            />
-        </div>
+                className="absolute overflow-hidden inset-[125px] w-[150px] rounded-full bg-primary opacity-50 border border-secondaryActive flex items-center justify-between"
+            >
+                {[
+                    { fn: handleValDecrease, icon: "minus" },
+                    { fn: handleValIncrease, icon: "plus" }
+                ].map((item, index) => (
+                    <button
+                        className="text-primaryText p-4 h-full outline-0"
+                        style={{
+                            display: selectedItem !== null && menu[selectedItem].minLimit ? "inline" : "none"
+                        }}
+                        onClick={item.fn}
+                        key={index}
+                    >
+                        <i className={`fa fa-${item.icon}`} />
+                    </button>
+                ))}
+                <button
+                    className="absolute bottom-0 w-[40px] left-[calc(50%-20px)] text-primaryText p-4"
+                    style={{
+                        display: selectedItem !== null ? "inline" : "none"
+                    }}
+                    onClick={() => setSelectedItem(null)}
+                >
+                    <i className="fa fa-check" />
+                </button>
+            </div>
+        </div >
     )
 }
