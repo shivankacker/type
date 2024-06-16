@@ -29,9 +29,5 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     }, [config])
 
 
-    return (
-        <>
-            {children}
-        </>
-    )
+    return children
 }

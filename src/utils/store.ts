@@ -4,7 +4,7 @@ import { Config } from '../types/config'
 export const configAtom = atomWithStorage<Config>("type-config", {
     font: {
         size: 16,
-        family: 'Arial',
+        family: 'Menlo, monospace',
         lineHeight: 1.5,
         opacity: 0.7,
     },
