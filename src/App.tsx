@@ -54,7 +54,7 @@ function App() {
                 onClick={() => changeTab(index)}
               >
                 <div className={`whitespace-nowrap ${tabs.current === index ? "font-bold" : ""} transition-all`}>
-                  {tab.length ? tab.split('\n')[0].slice(0, 20) : "Tab " + (index + 1)}
+                  {tab.length ? tab.trimStart().split('\n')[0].slice(0, 20) : "Tab " + (index + 1)}
                 </div>
                 <button>
                   <i className={`fal fa-times text-sm text-gray-500 hover:text-primaryText transition-all ${tabs.current === index ? "" : "opacity-0 group-hover:opacity-100"}`} onClick={(e) => { e.stopPropagation(); closeTab(index) }} />
