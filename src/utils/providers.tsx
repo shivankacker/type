@@ -2,6 +2,7 @@ import { useAtom } from "jotai"
 import { configAtom } from "./store"
 import { useEffect } from "react"
 import { THEMES } from "./themes"
+import { Analytics } from "@vercel/analytics/react"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
 
@@ -29,5 +30,5 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     }, [config])
 
 
-    return children
+    return <><Analytics/>{children}</>
 }
